@@ -3,6 +3,10 @@
 #include <string>
 #include "pugixml.hpp"
 
+// Forward system DirectInput8 exports so Windows accepts this proxy DLL
+#pragma comment(linker, "/export:DirectInput8Create=C:\\Windows\\System32\\dinput8.DirectInput8Create,@1")
+#pragma comment(linker, "/export:GetdfDIJoystick=C:\\Windows\\System32\\dinput8.GetdfDIJoystick,@2")
+
 namespace fs = std::filesystem;
 
 bool nativeUIOpen = false;
@@ -20,7 +24,6 @@ void InitializeModFolders(const fs::path& gameDir) {
         fs::create_directories(menyooDir);
     }
 
-    // Parse VehicleList.xml if present
     fs::path vehicleListPath = menyooDir / "VehicleList.xml";
     if (fs::exists(vehicleListPath)) {
         pugi::xml_document doc;
@@ -31,12 +34,10 @@ void InitializeModFolders(const fs::path& gameDir) {
 }
 
 void CheckInputKeybinds() {
-    // F4 for Native UI toggle
     if (GetAsyncKeyState(VK_F4) & 1) {
         nativeUIOpen = !nativeUIOpen;
     }
 
-    // F8 Double-Tap for Menyoo toggle
     if (GetAsyncKeyState(VK_F8) & 1) {
         ULONGLONG currentTick = GetTickCount64();
         if (currentTick - lastF8Tick < 400) { 
@@ -58,7 +59,6 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     while (true) {
         CheckInputKeybinds();
         
-        // Render triggers based on states
         if (nativeUIOpen) {
             // Native UI draw loop logic
         }
