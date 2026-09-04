@@ -12,11 +12,11 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Setup MSBuild / Compilation Environment
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Build Solution (Release x64)
-      run: msbuild YourSolutionName.sln /p:Configuration=Release /p:Platform=x64
+    - name: Build Project (Release x64)
+      run: msbuild YourProjectName.vcxproj /p:Configuration=Release /p:Platform=x64
 
     - name: Create Output Directory
       run: New-Item -ItemType Directory -Force -Path "bin/output"
@@ -27,7 +27,7 @@ jobs:
         Copy-Item "mods/menyoo.asi" "bin/output/" -ErrorAction SilentlyContinue
         Copy-Item "mods/rifleadjuster.asi" "bin/output/" -ErrorAction SilentlyContinue
         Copy-Item "mods/rifleadjuster.ini" "bin/output/" -ErrorAction SilentlyContinue
-        Copy-Item "x64/Release/Rloader.dll" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "Rloader.dll" "bin/output/" -ErrorAction SilentlyContinue
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
