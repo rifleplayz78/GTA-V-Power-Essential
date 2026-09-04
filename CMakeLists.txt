@@ -10,10 +10,15 @@ add_library(dinput8 SHARED
 
 include(FetchContent)
 FetchContent_Declare(
-  pugixml
-  GIT_REPOSITORY https://github.com/zeux/pugixml.git
-  GIT_TAG v1.14
+    pugixml
+    GIT_REPOSITORY https://github.com/zeux/pugixml.git
+    GIT_TAG v1.14
 )
 FetchContent_MakeAvailable(pugixml)
 
 target_link_libraries(dinput8 PRIVATE pugixml::pugixml)
+
+set_target_properties(dinput8 PROPERTIES
+    PREFIX ""
+    SUFFIX ".dll"
+)
