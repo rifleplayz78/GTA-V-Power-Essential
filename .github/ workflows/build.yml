@@ -2,9 +2,9 @@ name: Build GTA V Power Essential
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
     - name: Build Project
       run: cmake --build build --config Release
@@ -23,5 +23,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dinput8
+        name: dinput8-dll
         path: build/Release/dinput8.dll
