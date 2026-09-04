@@ -1,11 +1,11 @@
-name: Build and Package GTA V Mod Loader
+name: Build Native GTA V dinput8
 
 on:
   push:
     branches: [ main, master ]
 
 jobs:
-  build-mods:
+  build:
     runs-on: windows-latest
 
     steps:
@@ -21,16 +21,12 @@ jobs:
     - name: Create Output Directory
       run: New-Item -ItemType Directory -Force -Path "bin/output"
 
-    - name: Copy Mod Files to Main Directory
+    - name: Copy Compiled Binary
       run: |
-        Copy-Item "build/Release/dinput8.dll" "bin/output/" -ErrorAction SilentlyContinue
-        Copy-Item "mods/menyoo.asi" "bin/output/" -ErrorAction SilentlyContinue
-        Copy-Item "mods/rifleadjuster.asi" "bin/output/" -ErrorAction SilentlyContinue
-        Copy-Item "mods/rifleadjuster.ini" "bin/output/" -ErrorAction SilentlyContinue
-        Copy-Item "Rloader.dll" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "build/Release/dinput8.dll" "bin/output/" -ErrorAction Stop
 
-    - name: Upload Build Artifacts
+    - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GTAV-Mod-Package
+        name: GTAV-Native-dinput8
         path: bin/output/
