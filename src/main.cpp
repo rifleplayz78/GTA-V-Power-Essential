@@ -26,9 +26,24 @@ void WriteLog(const fs::path& gameDir, const std::string& message) {
     }
 }
 
-void ApplyMemoryPatches(const fs::path& gameDir) {
-    // TODO: Implement direct memory/heap and packfile limit byte patches here
-    WriteLog(gameDir, "Memory and heap adjustment patches applied.");
+void LoadAsiPlugins(const fs::path& gameDir) {
+    fs::path scriptsDir = gameDir / "scripts";
+    if (fs::exists(scriptsDir) && fs::is_directory(scriptsDir)) {
+        WriteLog(gameDir, "Scanning scripts directory for secondary plugins...");
+        for (const auto& entry : fs::directory_iterator(scriptsDir)) {
+            if (entry.path().extension() == ".asi") {
+                std::string pluginPath = entry.path().string();
+                HMODULE hMod = LoadLibraryA(pluginPath.c_str());
+                if (hMod) {
+                    WriteLog(gameDir, "Successfully loaded plugin: " + entry.path().filename().string());
+                } else {
+                    WriteLog(gameDir, "Failed to load plugin: " + entry.path().filename().string() + " (Error: " + std::to_string(GetLastError()) + ")");
+                }
+            }
+        }
+    } else {
+        WriteLog(gameDir, "Scripts directory not found; skipping dynamic plugin scan.");
+    }
 }
 
 void LoadConfig(const fs::path& gameDir) {
@@ -59,8 +74,9 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
 
     WriteLog(gameDir, "Native Mod Loader thread initialized.");
     
-    ApplyMemoryPatches(gameDir);
+    // Load config and scan scripts folder dynamically
     LoadConfig(gameDir);
+    LoadAsiPlugins(gameDir);
 
     bool f4PressedLastFrame = false;
     bool f8PressedLastFrame = false;
@@ -68,7 +84,6 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     bool menyooVisible = false;
 
     while (true) {
-        // Toggle NativeUI via F4
         bool f4Current = (GetAsyncKeyState(VK_F4) & 0x8000) != 0;
         if (f4Current && !f4PressedLastFrame) {
             nativeUiVisible = !nativeUiVisible;
@@ -76,7 +91,6 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
         }
         f4PressedLastFrame = f4Current;
 
-        // Toggle Menyoo via F8
         bool f8Current = (GetAsyncKeyState(VK_F8) & 0x8000) != 0;
         if (f8Current && !f8PressedLastFrame) {
             menyooVisible = !menyooVisible;
