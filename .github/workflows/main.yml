@@ -12,18 +12,18 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
+    - name: Configure CMake
+      run: cmake -B build -S .
 
-    - name: Build Project (Release x64)
-      run: msbuild YourProjectName.vcxproj /p:Configuration=Release /p:Platform=x64
+    - name: Build Project (Release)
+      run: cmake --build build --config Release
 
     - name: Create Output Directory
       run: New-Item -ItemType Directory -Force -Path "bin/output"
 
     - name: Copy Mod Files to Main Directory
       run: |
-        Copy-Item "x64/Release/dinput8.dll" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "build/Release/dinput8.dll" "bin/output/" -ErrorAction SilentlyContinue
         Copy-Item "mods/menyoo.asi" "bin/output/" -ErrorAction SilentlyContinue
         Copy-Item "mods/rifleadjuster.asi" "bin/output/" -ErrorAction SilentlyContinue
         Copy-Item "mods/rifleadjuster.ini" "bin/output/" -ErrorAction SilentlyContinue
