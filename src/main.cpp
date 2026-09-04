@@ -2,15 +2,20 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 #include "pugixml.hpp"
-
-// Forward declarations or inclusions for NativeUI / Menyoo hooks if applicable
-// #include "NativeUI.h" 
 
 #pragma comment(linker, "/export:DirectInput8Create=C:\\Windows\\System32\\dinput8.DirectInput8Create,@1")
 #pragma comment(linker, "/export:GetdfDIJoystick=C:\\Windows\\System32\\dinput8.GetdfDIJoystick,@2")
 
 namespace fs = std::filesystem;
+
+struct VehicleEntry {
+    std::string name;
+    std::string model;
+};
+
+std::vector<VehicleEntry> g_CustomVehicles;
 
 void WriteLog(const fs::path& gameDir, const std::string& message) {
     fs::path logPath = gameDir / "GTAV essen log.txt";
@@ -20,15 +25,24 @@ void WriteLog(const fs::path& gameDir, const std::string& message) {
     }
 }
 
-// Configuration loading via pugixml
 void LoadConfig(const fs::path& gameDir) {
-    fs::path xmlPath = gameDir / "VehicleList.xml";
+    fs::path xmlPath = gameDir / "menyoostuff" / "VehicleList.xml";
     pugi::xml_document doc;
+    
     if (doc.load_file(xmlPath.wstring().c_str())) {
-        WriteLog(gameDir, "Successfully loaded VehicleList.xml");
-        // Parse your nodes here
+        WriteLog(gameDir, "Successfully loaded menyoostuff/VehicleList.xml");
+        
+        g_CustomVehicles.clear();
+        pugi::xml_node root = doc.child("VehicleList");
+        for (pugi::xml_node vehNode = root.child("Vehicle"); vehNode; vehNode = vehNode.next_sibling("Vehicle")) {
+            VehicleEntry entry;
+            entry.name = vehNode.attribute("Name").as_string("Unknown");
+            entry.model = vehNode.attribute("Model").as_string("adder");
+            g_CustomVehicles.push_back(entry);
+        }
+        WriteLog(gameDir, "Parsed " + std::to_string(g_CustomVehicles.size()) + " vehicles from XML.");
     } else {
-        WriteLog(gameDir, "Failed to load VehicleList.xml - using defaults");
+        WriteLog(gameDir, "Failed to load menyoostuff/VehicleList.xml - using defaults");
     }
 }
 
@@ -46,31 +60,19 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     bool menyooVisible = false;
 
     while (true) {
-        // F4 Keybind: NativeUI Toggle
         bool f4Current = (GetAsyncKeyState(VK_F4) & 0x8000) != 0;
         if (f4Current && !f4PressedLastFrame) {
             nativeUiVisible = !nativeUiVisible;
             WriteLog(gameDir, nativeUiVisible ? "NativeUI Opened" : "NativeUI Closed");
-            // TODO: Call NativeUI render/toggle function here
         }
         f4PressedLastFrame = f4Current;
 
-        // F8 Keybind: Menyoo / Trainer Toggle
         bool f8Current = (GetAsyncKeyState(VK_F8) & 0x8000) != 0;
         if (f8Current && !f8PressedLastFrame) {
             menyooVisible = !menyooVisible;
             WriteLog(gameDir, menyooVisible ? "Menyoo Opened" : "Menyoo Closed");
-            // TODO: Call Menyoo render/toggle function here
         }
         f8PressedLastFrame = f8Current;
-
-        // Continuous tick logic for menus/placement can go here
-        if (nativeUiVisible) {
-            // NativeUI process tick
-        }
-        if (menyooVisible) {
-            // Menyoo process tick
-        }
 
         Sleep(5);
     }
