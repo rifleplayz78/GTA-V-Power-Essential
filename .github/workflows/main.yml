@@ -1,27 +1,36 @@
-name: Build dinput8.dll
+name: Build and Package GTA V Mod Loader
 
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
-  build:
+  build-mods:
     runs-on: windows-latest
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Configure CMake
-      run: cmake -B build -A x64
+    - name: Setup MSBuild / Compilation Environment
+      uses: microsoft/setup-msbuild@v2
 
-    - name: Build Project
-      run: cmake --build build --config Release
+    - name: Build Solution (Release x64)
+      run: msbuild YourSolutionName.sln /p:Configuration=Release /p:Platform=x64
 
-    - name: Upload Artifact
+    - name: Create Output Directory
+      run: New-Item -ItemType Directory -Force -Path "bin/output"
+
+    - name: Copy Mod Files to Main Directory
+      run: |
+        Copy-Item "x64/Release/dinput8.dll" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "mods/menyoo.asi" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "mods/rifleadjuster.asi" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "mods/rifleadjuster.ini" "bin/output/" -ErrorAction SilentlyContinue
+        Copy-Item "x64/Release/Rloader.dll" "bin/output/" -ErrorAction SilentlyContinue
+
+    - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: dinput8-x64
-        path: build/Release/dinput8.dll
+        name: GTAV-Mod-Package
+        path: bin/output/
